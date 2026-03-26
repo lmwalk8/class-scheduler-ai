@@ -11,7 +11,7 @@ Schedule course **sections** (time, room, teacher) from structured inputs, then 
 | Role | Relationship to the system |
 |------|----------------------------|
 | **Scheduling staff / registrar** | Primary users: define offerings, constraints, and runs; review and publish schedules. |
-| **Faculty** | Provide availability and teaching assignments; v1 can model this as data even if entered by staff. |
+| **Faculty** | Provide availability and teaching assignments. |
 | **Students** | Their **requests** are inputs for the **enrollment** step. |
 
 ### What “the schedule” means here
@@ -44,4 +44,4 @@ Use one small, hand-maintained set so tests and demos stay stable.
 python3 scripts/generate_toy_dataset.py
 ```
 
-Optional: `--out DIR` (default `data/toy`), `--seed N` (default `42`) for availability and student-request patterns. Files include `courses`, `teachers`, `rooms`, `time_blocks`, `sections_to_schedule`, `section_teacher_options`, `teacher_availability`, `room_availability`, plus `students` and `student_requests` for a later enrollment phase.
+Optional: `--out DIR` (default `data/toy`), `--seed N` (default `42`) for availability and student-request patterns. Files include `courses`, `teachers`, `rooms`, `time_blocks`, `sections_to_schedule`, `section_teacher_options`, `teacher_availability`, `room_availability`, `students` and `student_requests`.
