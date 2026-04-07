@@ -1,5 +1,5 @@
 """
-Example pipeline: section placement → student enrollment (no Django).
+Example pipeline: section placement to student enrollment (no Django).
 
 Run from repo root, e.g.:
 
