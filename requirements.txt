@@ -1,0 +1,5 @@
+django>=6.0,<7
+python-dotenv>=1.0.0
+ortools>=9.10.0
+pytest>=8.4.0
+pytest-django>=4.8.0

@@ -33,8 +33,10 @@ Use one small, hand-maintained set so tests and demos stay stable.
 | Rooms | 2–4 | Capacities differ slightly. |
 | Time blocks | 4–8 | Same day or multiple days; at least one intentional “tight” resource. |
 | Availability | Sparse, not universal | Forces tradeoffs (teachers/rooms not free every block). |
+| Students | ~14 (adjust in script) | Synthetic roster: `student_id`, `name`, `max_credits` for the **enrollment** phase. |
+| Student requests | 2–4 courses per student | Each row is `(student_id, course_id, priority)`; lower `priority` number = higher preference. Pattern is **seeded** so you can reproduce or vary runs. |
 
-**Naming:** Stable string ids (`CS101`, `CS101-A`, `T-001`, `ROOM-201`, `MON-P1`). No real PII—use `student_01`, `student_02` if you add requests before production.
+**Naming:** Stable string ids (`CS101`, `CS101-A`, `T-001`, `ROOM-201`, `MON-P1`). No real PII—use `student_01`, `student_02`, etc., for toy students and requests.
 
 **Location:** `data/toy/` — CSVs produced by a small generator.
 
@@ -44,4 +46,4 @@ Use one small, hand-maintained set so tests and demos stay stable.
 python3 scripts/generate_toy_dataset.py
 ```
 
-Optional: `--out DIR` (default `data/toy`), `--seed N` (default `42`) for availability and student-request patterns. Files include `courses`, `teachers`, `rooms`, `time_blocks`, `sections_to_schedule`, `section_teacher_options`, `teacher_availability`, `room_availability`, `students` and `student_requests`.
+Optional: `--out DIR` (default `data/toy`), `--seed N` (default `42`) for **teacher/room availability** and **which courses each student requests** (not section placement). Files include `courses`, `teachers`, `rooms`, `time_blocks`, `sections_to_schedule`, `section_teacher_options`, `teacher_availability`, `room_availability`, `students`, and `student_requests`.
