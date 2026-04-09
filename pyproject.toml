@@ -1,3 +1,4 @@
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "classScheduler"]
 testpaths = ["tests"]
+DJANGO_SETTINGS_MODULE = "classScheduler.settings"

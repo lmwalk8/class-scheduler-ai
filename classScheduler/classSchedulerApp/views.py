@@ -1,10 +1,11 @@
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Enrollment, ScheduleRun, Section, Student, Teacher
 from .scheduling_service import run_full_schedule
+
+staff_member_required = user_passes_test(lambda u: u.is_active and u.is_staff)
 
 def home(request):
     return render(request, "classSchedulerApp/home.html")

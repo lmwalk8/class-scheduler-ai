@@ -1,4 +1,4 @@
-"""Django-free scheduling solvers (OR-Tools CP-SAT)."""
+"""Scheduling solvers (OR-Tools CP-SAT)."""
 
 from scheduler_core.types import (
     EnrollmentAssignment,
