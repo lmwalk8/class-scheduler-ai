@@ -1,5 +1,10 @@
+import uuid
+
+from django.conf import settings
 from django.db import models
 
+def _new_schedule_run_id() -> str:
+    return str(uuid.uuid4())
 
 class Course(models.Model):
     course_id = models.CharField(max_length=100, unique=True)
@@ -14,6 +19,27 @@ class Section(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     min_enrollment = models.IntegerField()
     max_enrollment = models.IntegerField()
+    assigned_teacher = models.ForeignKey(
+        "Teacher",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_sections",
+    )
+    assigned_room = models.ForeignKey(
+        "Room",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_sections",
+    )
+    assigned_time_block = models.ForeignKey(
+        "TimeBlock",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_sections",
+    )
 
     def __str__(self):
         return self.section_id
@@ -22,6 +48,14 @@ class Teacher(models.Model):
     teacher_id = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=200)
     email = models.EmailField()
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="teacher_profile",
+        help_text="Link a login account so this teacher can open “My teaching schedule”.",
+    )
 
     def __str__(self):
         return self.teacher_id
@@ -92,6 +126,14 @@ class Student(models.Model):
     student_id = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=200)
     max_credits = models.IntegerField()
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="student_profile",
+        help_text="Link a login account so this student can open “My class schedule”.",
+    )
 
     def __str__(self):
         return self.student_id
@@ -115,6 +157,13 @@ class StudentRequest(models.Model):
 class Enrollment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    schedule_run = models.ForeignKey(
+        "ScheduleRun",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+    )
 
     class Meta:
         constraints = [
@@ -128,11 +177,26 @@ class Enrollment(models.Model):
         return f"{self.student.student_id} - {self.section.section_id}"
 
 class ScheduleRun(models.Model):
-    run_id = models.CharField(max_length=100)
+    class Status(models.TextChoices):
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+
+    run_id = models.CharField(
+        max_length=64,
+        unique=True,
+        editable=False,
+        default=_new_schedule_run_id,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=100)
-    error_message = models.TextField()
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.FAILED,
+    )
+    error_message = models.TextField(blank=True, default="")
+    section_count = models.PositiveIntegerField(default=0)
+    enrollment_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.run_id

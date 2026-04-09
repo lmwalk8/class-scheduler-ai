@@ -1,0 +1,56 @@
+{% extends "classSchedulerApp/base.html" %}
+{% load tz %}
+{% block title %}Run {{ run.run_id }}{% endblock %}
+{% block content %}
+<h1>Schedule run</h1>
+<p class="muted">Run id <code>{{ run.run_id }}</code> · {{ run.created_at|localtime }} ({{ TIME_ZONE }}) · status <strong>{{ run.get_status_display }}</strong></p>
+<p>Sections placed: {{ run.section_count }} · Enrollments: {{ run.enrollment_count }}</p>
+{% if run.error_message %}
+<p class="error" style="padding:0.5rem;">{{ run.error_message }}</p>
+{% endif %}
+
+<h2>Section placements</h2>
+<p class="muted">These are the current section assignments in the database after this run (each full run replaces all assignments).</p>
+{% if sections %}
+<table>
+  <thead>
+    <tr><th>Section</th><th>Course</th><th>Teacher</th><th>Room</th><th>Block</th></tr>
+  </thead>
+  <tbody>
+    {% for s in sections %}
+    <tr>
+      <td>{{ s.section_id }}</td>
+      <td>{{ s.course.course_id }}</td>
+      <td>{{ s.assigned_teacher.teacher_id }}</td>
+      <td>{{ s.assigned_room.room_id }}</td>
+      <td>{{ s.assigned_time_block.block_id }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No sections with assignments (empty database or section solver returned no placements).</p>
+{% endif %}
+
+<h2>Enrollments</h2>
+{% if enrollments %}
+<table>
+  <thead>
+    <tr><th>Student</th><th>Section</th><th>Course</th></tr>
+  </thead>
+  <tbody>
+    {% for e in enrollments %}
+    <tr>
+      <td>{{ e.student.student_id }}</td>
+      <td>{{ e.section.section_id }}</td>
+      <td>{{ e.section.course.course_id }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No enrollments for this run.</p>
+{% endif %}
+
+<p><a href="{% url 'generate_schedule' %}">← Generate again</a></p>
+{% endblock %}

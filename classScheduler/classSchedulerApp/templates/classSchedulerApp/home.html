@@ -1,0 +1,31 @@
+{% extends "classSchedulerApp/base.html" %}
+
+{% block title %}
+  Class Scheduler
+{% endblock %}
+
+
+{% block content %}
+  <h1>Automatic Class Scheduler</h1>
+
+  <p>This site schedules sections and enrollments from your course data. Staff import CSVs and run the solver; teachers and students can sign in to see their own assignments.</p>
+
+  {% if user.is_staff %}
+  <p><a href="{% url 'generate_schedule' %}" class="btn">Generate schedule</a></p>
+  {% endif %}
+
+  {% if user.is_authenticated %}
+    {% if linked_teacher %}
+    <p><a href="{% url 'my_teacher_schedule' %}">My teaching schedule</a></p>
+    {% endif %}
+    {% if linked_student %}
+    <p><a href="{% url 'my_student_schedule' %}">My class schedule</a></p>
+    {% endif %}
+    {% if not linked_teacher and not linked_student and not user.is_staff %}
+    <p class="muted">Your account is not linked to a teacher or student record yet. Ask an administrator to set the User field on your profile in the admin.</p>
+    {% endif %}
+  {% else %}
+  <p><a href="{% url 'login' %}">Log in</a> to see your schedule (if your account is linked).</p>
+  {% endif %}
+
+{% endblock %}

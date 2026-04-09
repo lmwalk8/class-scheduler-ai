@@ -1,0 +1,34 @@
+{% extends "classSchedulerApp/base.html" %}
+{% load tz %}
+{% block title %}My class schedule{% endblock %}
+{% block content %}
+<h1>My class schedule</h1>
+<p class="muted">{{ student.name }} (<code>{{ student.student_id }}</code>)</p>
+
+{% if schedule_run %}
+<p class="muted">Showing enrollments for the latest schedule run: <code>{{ schedule_run.run_id }}</code> · {{ schedule_run.created_at|localtime }} · {{ schedule_run.get_status_display }}</p>
+{% else %}
+<p class="muted">No schedule runs exist yet. Check back after staff generates a schedule.</p>
+{% endif %}
+
+{% if enrollments %}
+<table>
+  <thead>
+    <tr><th>Section</th><th>Course</th><th>Teacher</th><th>Room</th><th>Time block</th></tr>
+  </thead>
+  <tbody>
+    {% for e in enrollments %}
+    <tr>
+      <td>{{ e.section.section_id }}</td>
+      <td>{{ e.section.course.course_id }}</td>
+      <td>{% if e.section.assigned_teacher %}{{ e.section.assigned_teacher.teacher_id }}{% else %}—{% endif %}</td>
+      <td>{% if e.section.assigned_room %}{{ e.section.assigned_room.room_id }}{% else %}—{% endif %}</td>
+      <td>{% if e.section.assigned_time_block %}{{ e.section.assigned_time_block.block_id }}{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% elif schedule_run %}
+<p class="muted">You have no enrollments in this run (or the enrollment step did not place you in any section).</p>
+{% endif %}
+{% endblock %}

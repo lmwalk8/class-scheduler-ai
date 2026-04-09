@@ -69,15 +69,52 @@ class CsvImportAdmin(admin.ModelAdmin):
             obj.rows_imported = 0
         obj.save(update_fields=["status", "message", "rows_imported"])
 
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = (
+        "section_id",
+        "course",
+        "min_enrollment",
+        "max_enrollment",
+        "assigned_teacher",
+        "assigned_room",
+        "assigned_time_block",
+    )
+    list_filter = ("course",)
+
 admin.site.register(Course)
-admin.site.register(Section)
-admin.site.register(Teacher)
+
+@admin.register(Teacher)
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = ("teacher_id", "name", "email", "user")
+    search_fields = ("teacher_id", "name", "email")
+    raw_id_fields = ("user",)
+
 admin.site.register(Room)
 admin.site.register(TimeBlock)
 admin.site.register(TeacherAvailability)
 admin.site.register(RoomAvailability)
 admin.site.register(SectionTeacherOption)
-admin.site.register(Student)
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ("student_id", "name", "max_credits", "user")
+    search_fields = ("student_id", "name")
+    raw_id_fields = ("user",)
+
 admin.site.register(StudentRequest)
-admin.site.register(Enrollment)
-admin.site.register(ScheduleRun)
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ("student", "section", "schedule_run")
+    list_filter = ("schedule_run", "section__course")
+@admin.register(ScheduleRun)
+class ScheduleRunAdmin(admin.ModelAdmin):
+    list_display = (
+        "run_id",
+        "status",
+        "section_count",
+        "enrollment_count",
+        "created_at",
+    )
+    list_filter = ("status",)
+    readonly_fields = ("run_id", "created_at", "updated_at")
+    ordering = ("-created_at",)

@@ -56,10 +56,15 @@ pip install -r requirements.txt
 
 5. Set up required environment variables:
 
-Create .env variable in project directory and add this for Django settings:
+Create a .env file in the repo root (`class-scheduler-ai/.env`) or under `classScheduler/.env` (the latter overrides the former for duplicate keys). Example:
+
 ```
 DJANGO_SECRET_KEY=your_django_secret
+# Optional: IANA timezone for UI and admin timestamps (default America/New_York)
+DJANGO_TIME_ZONE=America/Los_Angeles
 ```
+
+Valid names are from the [IANA time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (e.g. `America/Chicago`, `Europe/London`).
 
 ---
 
@@ -122,6 +127,64 @@ python scripts/generate_toy_dataset.py
 
 ---
 
-## Full Schedule View in UI (Django)
+## Django UI: Generate Schedule
 
-** TODO **
+After importing data via **Admin to CSV imports** (or manual entry), staff can run the same OR-Tools pipeline the CLI uses:
+
+1. Create a staff user: `python manage.py createsuperuser` (from `classScheduler/`).
+2. Log in at `/admin/`, then open **`/schedule/generate/`** (staff only; unauthenticated users are redirected to log in).
+3. Click **Run schedulers & save**. This calls `classSchedulerApp.scheduling_service.run_full_schedule`, which:
+   - builds `SectionPlacementInput` from the database (sorted ids for stable solver behavior),
+   - runs `solve_section_placement` then `solve_student_enrollment`,
+   - clears prior enrollments and section assignments, writes new **`Section.assigned_*`** fields, creates a **`ScheduleRun`**, and bulk-creates **`Enrollment`** rows linked to that run.
+4. The result page lists section placements and enrollments for that run.
+
+CLI parity (same DB and same code path): from `classScheduler/`:
+
+```
+python manage.py run_schedule
+```
+
+Run it twice on the same database. The printed `SECTION` / `ENROLL` lines should match between runs if the data is unchanged (OR-Tools is deterministic for a fixed model).
+
+The script `scripts/student_course_enrollment_solver.py` still uses a hard-coded example, not the database. To compare against toy CSVs, import `data/toy/` into Django first, then use **`run_schedule`** or **`/schedule/generate/`**.
+
+---
+
+## Django UI: Teacher and Student Views
+
+Teachers and students can log in with normal Django accounts and open read-only pages that show their assignments only. This uses optional **`Teacher.user`** and **`Student.user`** links (one-to-one with `AUTH_USER_MODEL`).
+
+### URLs and auth
+
+| What | URL |
+|------|-----|
+| Log in | **`/accounts/login/`** |
+| Log out | POST to **`/accounts/logout/`** (use the **Log out** control in the site nav) |
+| Home | **`/`** |
+| My teaching schedule | **`/schedule/my/teacher/`** (login required; needs linked `Teacher`) |
+| My class schedule | **`/schedule/my/student/`** (login required; needs linked `Student`) |
+
+Django settings used by this flow:
+
+- **`LOGIN_URL`** — `/accounts/login/` (unauthenticated users hitting the “my schedule” URLs are sent here).
+- **`LOGIN_REDIRECT_URL`** and **`LOGOUT_REDIRECT_URL`** — `/` (after login or logout).
+
+Built-in auth routes come from **`django.contrib.auth.urls`** (included under **`/accounts/`** in the project URLconf).
+
+### Linking accounts in the admin
+
+1. **Create a user** (does not need to be staff unless they should use the admin or **Generate schedule**):
+   - In admin: **Authentication and authorization → Users → Add user**, set username and password; or
+   - `python manage.py createsuperuser` for a staff account.
+2. **Teachers:** **Class scheduler app for Teachers** → open the teacher row → set **User** to that account (raw id: the user’s numeric **ID** from the Users list). Save.
+3. **Students:** **Class scheduler app for Students** → open the student row → set **User** the same way.
+
+Each Django user can link to at most one `Teacher` and at most one `Student` record (separate optional links).
+
+### What each page shows
+
+- **My teaching schedule** — All **`Section`** rows whose **`assigned_teacher`** is the linked teacher, with course, room, and time block (reflects whatever is currently stored after the latest successful scheduling run wrote the database).
+- **My class schedule** — **`Enrollment`** rows for the linked student for the **latest successful** **`ScheduleRun`**; if none succeeded yet, the latest run is used. Each row shows section, course, teacher, room, and time block for that enrollment.
+
+The site navigation shows **My teaching schedule** / **My class schedule** when the logged-in user has the corresponding link. The home page repeats those links when applicable.

@@ -1,0 +1,19 @@
+{% extends "classSchedulerApp/base.html" %}
+{% load tz %}
+{% block title %}Generate schedule{% endblock %}
+{% block content %}
+<h1>Generate schedule</h1>
+<p>Runs the OR-Tools section solver, then the student enrollment solver, using the data currently in the database (same pipeline as <code>classSchedulerApp.scheduling_service.run_full_schedule</code>). Previous enrollments are replaced; section assignments are updated.</p>
+<p class="muted">Staff only. Import toy CSVs from Admin first if you want to match the generated <code>data/toy/</code> dataset.</p>
+
+<form method="post" action="{% url 'generate_schedule' %}">
+  {% csrf_token %}
+  <button type="submit">Run schedulers &amp; save</button>
+</form>
+
+{% if last_run %}
+<h2>Last run</h2>
+<p class="muted">{{ last_run.created_at|localtime }} ({{ TIME_ZONE }}) — <strong>{{ last_run.status }}</strong> — run id <code>{{ last_run.run_id }}</code></p>
+<p><a class="btn" href="{% url 'schedule_run_detail' pk=last_run.pk %}">View last run</a></p>
+{% endif %}
+{% endblock %}

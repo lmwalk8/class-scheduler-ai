@@ -12,17 +12,19 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Repo root contains ``scheduler_core`` (sibling of this ``classScheduler`` package).
+REPO_ROOT = BASE_DIR.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
-env_path = BASE_DIR / ".env"
-if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
-else:
-    # Fallback to default behavior (current directory)
-    load_dotenv()
+# Repo-root .env first, then classScheduler/.env (latter wins for duplicate keys).
+load_dotenv(REPO_ROOT / ".env")
+load_dotenv(BASE_DIR / ".env", override=True)
 
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
@@ -33,6 +35,10 @@ if not SECRET_KEY:
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 
 # Application definition
@@ -51,6 +57,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'classSchedulerApp.middleware.ActivateSettingsTimezoneMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -67,8 +74,10 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
+                'django.template.context_processors.tz',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'classSchedulerApp.context_processors.scheduling_nav',
             ],
         },
     },
@@ -112,7 +121,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# IANA name, e.g. America/New_York, America/Los_Angeles, Europe/London.
+# Set DJANGO_TIME_ZONE in .env (repo root or classScheduler/) to match your location.
+TIME_ZONE = os.environ.get("DJANGO_TIME_ZONE", "America/New_York")
 
 USE_I18N = True
 

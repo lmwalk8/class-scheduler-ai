@@ -1,0 +1,27 @@
+{% extends "classSchedulerApp/base.html" %}
+{% block title %}My teaching schedule{% endblock %}
+{% block content %}
+<h1>My teaching schedule</h1>
+<p class="muted">{{ teacher.name }} (<code>{{ teacher.teacher_id }}</code>)</p>
+<p class="muted">Sections currently assigned to you in the database (after the latest schedule run).</p>
+
+{% if sections %}
+<table>
+  <thead>
+    <tr><th>Section</th><th>Course</th><th>Room</th><th>Time block</th></tr>
+  </thead>
+  <tbody>
+    {% for s in sections %}
+    <tr>
+      <td>{{ s.section_id }}</td>
+      <td>{{ s.course.course_id }}</td>
+      <td>{% if s.assigned_room %}{{ s.assigned_room.room_id }}{% else %}—{% endif %}</td>
+      <td>{% if s.assigned_time_block %}{{ s.assigned_time_block.block_id }}{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No sections are assigned to you yet. After staff runs the scheduler, your assignments will appear here.</p>
+{% endif %}
+{% endblock %}
